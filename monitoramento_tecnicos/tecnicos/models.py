@@ -15,9 +15,12 @@ class Tecnico(models.Model):
     id = models.BigAutoField(primary_key=True)
     nome = models.CharField(max_length=100, verbose_name="Nome do Técnico")
     grupos = models.ManyToManyField(Group, related_name="tecnicos", verbose_name="Grupos de Permissão")
-
-    def get_status(self):
-        from datetime import datetime
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Fora Expediente", verbose_name="Status")
+    
+    def atualizar_status(self):
+        """
+        Atualiza o status do técnico com base no horário de expediente e nas ordens de serviço.
+        """
         horario_atual = now().time()
         dia_atual = now().strftime("%A")  # Nome do dia da semana em inglês
 
@@ -29,16 +32,18 @@ class Tecnico(models.Model):
                 # Verifica as ordens de serviço atribuídas
                 ordens = self.ordens_servico.all()
                 if any(os.status == "Em Andamento" for os in ordens):
-                    return "Em Atividade"
-                return "Disponível"
+                    self.status = "Em Atividade"
+                else:
+                    self.status = "Disponível"
             else:
-                return "Fora Expediente"
-        return "Fora Expediente"
+                self.status = "Fora Expediente"
+        else:
+            self.status = "Fora Expediente"
 
-    get_status.short_description = "Status"  # Para exibir no Django Admin
+        self.save()
 
     def __str__(self):
-        return f"{self.nome} ({self.get_status()})"
+        return f"{self.nome} ({self.status})"
 
 class Expediente(models.Model): 
     DIAS_DA_SEMANA = [
@@ -97,17 +102,18 @@ class OrdemServico(models.Model):
     cidade = models.CharField(max_length=100, verbose_name="Cidade")
     tecnicos = models.ManyToManyField("Tecnico", related_name="ordens_servico", verbose_name="Técnicos")
     ultima_mensagem = models.TextField(blank=True, null=True, verbose_name="Última Mensagem")
-    status = models.CharField(max_length=20, default="Pendente")
+    status = models.CharField(max_length=20, verbose_name="status_os")
     def __str__(self):
         return f"OS {self.numero_ordem_servico} - {self.tipo_os}"
 
-    def status(self):
+    def calcular_status(self):
         if self.data_termino_executado:
             return "Concluída"
         elif self.data_inicio_executado:
             return "Em Andamento"
         else:
             return "Pendente"
+
     def atualizar_status(self):
         if self.data_termino_executado:
             self.status = "Concluída"

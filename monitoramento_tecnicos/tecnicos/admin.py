@@ -4,7 +4,7 @@ from .models import Tecnico, OrdemServico, Expediente, DiaSemana
 
 @admin.register(Tecnico)
 class TecnicoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'get_status', 'listar_grupos')
+    list_display = ('id', 'nome', 'status', 'listar_grupos')
     list_filter = ('grupos',)  # Removido 'status' que estava causando erro
     search_fields = ('nome',)
     filter_horizontal = ('grupos',)
@@ -17,7 +17,7 @@ class TecnicoAdmin(admin.ModelAdmin):
 @admin.register(OrdemServico)
 class OrdemServicoAdmin(admin.ModelAdmin):
     list_display = ('numero_ordem_servico', 'tipo_os', 'cidade', 'status', 'data_cadastro')
-    list_filter = ('tipo_os', 'cidade', 'data_cadastro')
+    list_filter = ('tipo_os', 'cidade', 'data_cadastro', 'status')
     search_fields = ('numero_ordem_servico', 'id_cliente_servico')
     filter_horizontal = ('tecnicos',)
     readonly_fields = ('prazo',)

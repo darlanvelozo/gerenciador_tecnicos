@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Técnico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f4f4f4; }
+        a { text-decoration: none; color: blue; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Detalhes do Técnico</h1>
+    <h2>{{ tecnico.nome }} - {{ tecnico.status }}</h2>
+
+    <h3>Ordens de Serviço</h3>
+    {% if ordens_servico %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Número OS</th>
+                    <th>Data Cadastro</th>
+                    <th>Status</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Cidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for os in ordens_servico %}
+                    <tr>
+                        <td>{{ os.numero_ordem_servico }}</td>
+                        <td>{{ os.data_cadastro }}</td>
+                        <td>{{ os.status }}</td>
+                        <td>{{ os.id_cliente_servico }}</td>
+                        <td>{{ os.tipo_os }}</td>
+                        <td>{{ os.cidade }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Nenhuma ordem de serviço associada a este técnico.</p>
+    {% endif %}
+
+    <p><a href="{% url 'tecnicos_em_expediente' %}">Voltar para a lista de técnicos</a></p>
+</body>
+</html>
