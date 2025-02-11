@@ -9,11 +9,77 @@ from django.shortcuts import render
 from django.utils.timezone import now
 from .models import Tecnico, OrdemServico
 from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+from django.db.models import Q
 
 from django.shortcuts import render
 from django.utils.timezone import now
 from .models import Tecnico, OrdemServico
 from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+from django.shortcuts import render
+from django.utils import timezone
+from datetime import timedelta
+from .models import Tecnico, OrdemServico
+
+def alarme_tecnico(request):
+    # Obter a data e hora atuais
+    agora = timezone.now()
+
+    # Lista para armazenar os dados dos técnicos
+    tecnicos_com_dados = []
+
+    # Filtrar técnicos que estão em expediente (status diferente de "Fora Expediente") 
+    # e que possuem ordens de serviço pendentes maiores que 0
+    tecnicos = Tecnico.objects.exclude(status="Fora Expediente").annotate(
+        qtd_pendente=Count('ordens_servico', filter=Q(ordens_servico__status="Pendente"))
+    ).filter(qtd_pendente__gt=0)
+
+    for tecnico in tecnicos:
+        # Filtrar ordens de serviço do técnico
+        ordens_tecnico = tecnico.ordens_servico.all()
+
+        # Quantidade de ordens pendentes (todas as pendentes)
+        qtd_pendente = ordens_tecnico.filter(status="Pendente").count()
+
+        # Quantidade de ordens concluídas no dia atual
+        hoje = agora.date()
+        qtd_concluida_hoje = ordens_tecnico.filter(
+            status="Concluída",
+            data_termino_executado__date=hoje
+        ).count()
+
+        # Verificar situações de alarme
+        alarme = None
+
+        # Situação 1: Técnico está disponível por mais de 20 minutos
+        if tecnico.status == "Disponível":
+            tempo_disponivel = agora - tecnico.ultima_atualizacao_status
+            if tempo_disponivel > timedelta(minutes=20):
+                alarme = "Ultrapassou Tempo Limite Disponível para Iniciar"
+
+        # Situação 2: Técnico está em atividade e ultrapassou o prazo para finalizar uma OS
+        if not alarme and tecnico.status == "Em Atividade":
+            for os in ordens_tecnico.filter(status="Em Atividade"):
+                if os.data_termino_programado:
+                    tempo_limite_fim = os.data_termino_programado + timedelta(minutes=20)
+                    if agora > tempo_limite_fim:
+                        alarme = "Ultrapassou Tempo Limite Disponível para Finalizar"
+                        break
+
+        # Adicionar dados do técnico à lista
+        tecnicos_com_dados.append({
+            "tecnico": tecnico,
+            "qtd_pendente": qtd_pendente,
+            "qtd_concluida_hoje": qtd_concluida_hoje,
+            "alarme": alarme,
+            "ultima_atualizacao_status": tecnico.ultima_atualizacao_status,
+        })
+
+    # Renderizar a página com os dados
+    return render(
+        request,
+        "tecnicos/alarme_tecnico.html",
+        {"tecnicos_com_dados": tecnicos_com_dados},
+    )
 
 def formatar_tempo(duracao):
     if duracao is None:

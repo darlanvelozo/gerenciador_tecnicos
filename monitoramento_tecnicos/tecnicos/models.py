@@ -16,6 +16,7 @@ class Tecnico(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome do Técnico")
     grupos = models.ManyToManyField(Group, related_name="tecnicos", verbose_name="Grupos de Permissão")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Fora Expediente", verbose_name="Status")
+    ultima_atualizacao_status = models.DateTimeField(auto_now=True, verbose_name="Última Atualização do Status")
     
     def atualizar_status(self):
         """
