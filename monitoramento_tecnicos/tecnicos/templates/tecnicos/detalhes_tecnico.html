@@ -19,7 +19,7 @@
     <h2>{{ tecnico.nome }} - {{ tecnico.status }}</h2>
 
     <h3>Ordens de Serviço</h3>
-    {% if ordens_servico %}
+    {% if ordens_com_atraso %}
         <table>
             <thead>
                 <tr>
@@ -29,17 +29,29 @@
                     <th>Cliente</th>
                     <th>Tipo</th>
                     <th>Cidade</th>
+                    <th>Início Programado</th>
+                    <th>Início Executado</th>
+                    <th>Término Programado</th>
+                    <th>Término Executado</th>
+                    <th>Atraso Execução</th>
+                    <th>Atraso Conclusão</th>
                 </tr>
             </thead>
             <tbody>
-                {% for os in ordens_servico %}
+                {% for item in ordens_com_atraso %}
                     <tr>
-                        <td>{{ os.numero_ordem_servico }}</td>
-                        <td>{{ os.data_cadastro }}</td>
-                        <td>{{ os.status }}</td>
-                        <td>{{ os.id_cliente_servico }}</td>
-                        <td>{{ os.tipo_os }}</td>
-                        <td>{{ os.cidade }}</td>
+                        <td>{{ item.os.numero_ordem_servico }}</td>
+                        <td>{{ item.os.data_cadastro }}</td>
+                        <td>{{ item.os.status }}</td>
+                        <td>{{ item.os.id_cliente_servico }}</td>
+                        <td>{{ item.os.tipo_os }}</td>
+                        <td>{{ item.os.cidade }}</td>
+                        <td>{{ item.os.data_inicio_programado}}</td>
+                        <td>{{ item.os.data_inicio_executado}}</td>
+                        <td>{{ item.os.data_termino_programado}}</td>
+                        <td>{{ item.os.data_termino_executado}}</td>
+                        <td>{{ item.atraso_execucao }}</td>
+                        <td>{{ item.atraso_conclusao }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

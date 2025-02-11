@@ -2,21 +2,134 @@ from django.shortcuts import render
 from django.utils.timezone import now
 from .models import Tecnico
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+from django.utils.timezone import now
+from datetime import timedelta
+from django.shortcuts import render
+from django.utils.timezone import now
+from .models import Tecnico, OrdemServico
+from django.db.models import Avg, Count, F, ExpressionWrapper, fields
 
+from django.shortcuts import render
+from django.utils.timezone import now
+from .models import Tecnico, OrdemServico
+from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+
+def formatar_tempo(duracao):
+    if duracao is None:
+        return "-"
+
+    total_segundos = int(duracao.total_seconds())
+    dias = total_segundos // 86400
+    horas = (total_segundos % 86400) // 3600
+    minutos = (total_segundos % 3600) // 60
+
+    if dias > 0:
+        return f"{dias}d {horas}h {minutos}m"
+    elif horas > 0:
+        return f"{horas}h {minutos}m"
+    else:
+        return f"{minutos}m"
 
 def detalhes_tecnico(request, tecnico_id):
     tecnico = get_object_or_404(Tecnico, id=tecnico_id)
-    ordens_servico = tecnico.ordens_servico.all()  # Obtém todas as OS do técnico
+    ordens_servico = tecnico.ordens_servico.exclude(status="Concluída")
 
-    return render(request, "tecnicos/detalhes_tecnico.html", {"tecnico": tecnico, "ordens_servico": ordens_servico})
+    ordens_com_atraso = []
+    for os in ordens_servico:
+        # Cálculo do atraso na execução
+        atraso_execucao = None
+        if os.data_inicio_executado and os.data_inicio_programado:
+            atraso_execucao = os.data_inicio_executado - os.data_inicio_programado
+
+        # Cálculo do atraso na conclusão
+        atraso_conclusao = None
+        if os.data_termino_executado and os.data_termino_programado:
+            atraso_conclusao = os.data_termino_executado - os.data_termino_programado
+
+        ordens_com_atraso.append({
+            "os": os,
+            "atraso_execucao": formatar_tempo(atraso_execucao),
+            "atraso_conclusao": formatar_tempo(atraso_conclusao),
+        })
+
+    return render(request, "tecnicos/detalhes_tecnico.html", {
+        "tecnico": tecnico,
+        "ordens_com_atraso": ordens_com_atraso,
+    })
+
+
+
+
+# Função para formatar durações (dias, horas, minutos)
+
+
+from django.db.models import Avg, ExpressionWrapper, F, fields
+from django.shortcuts import render
+from .models import Tecnico, OrdemServico
+  # Supondo que formatar_tempo está em utils.py
 
 def tecnicos_em_expediente(request):
-    horario_atual = now().time()
-    dia_atual = now().strftime("%A")  # Nome do dia da semana em inglês
+    # Filtrar técnicos que possuem ordens de serviço nos status desejados e não estão fora do expediente
+    tecnicos = Tecnico.objects.filter(
+        ordens_servico__status__in=["Pendente", "Concluída", "Em Execução"]
+    ).exclude(status="Fora Expediente").distinct()
 
-    # Filtrar técnicos que estão dentro do expediente
-    tecnicos = [
-        tecnico for tecnico in Tecnico.objects.all() if tecnico.status != "Fora Expediente"
-    ]
+    tecnicos_com_dados = []
 
-    return render(request, "expediente/tecnicos_em_expediente.html", {"tecnicos": tecnicos})
+    for tecnico in tecnicos:
+        # Filtrar ordens de serviço do técnico
+        ordens_tecnico = tecnico.ordens_servico.all()
+
+        # Cálculo de Média de Atraso na Execução
+        media_atraso_execucao = ordens_tecnico.exclude(
+            data_inicio_executado__isnull=True
+        ).aggregate(
+            media=Avg(ExpressionWrapper(
+                F("data_inicio_executado") - F("data_inicio_programado"),
+                output_field=fields.DurationField()
+            ))
+        )["media"]
+
+        # Cálculo de Média de Atraso na Conclusão
+        media_atraso_conclusao = ordens_tecnico.exclude(
+            data_termino_executado__isnull=True
+        ).aggregate(
+            media=Avg(ExpressionWrapper(
+                F("data_termino_executado") - F("data_termino_programado"),
+                output_field=fields.DurationField()
+            ))
+        )["media"]
+
+        # Cálculo do Tempo Médio de Resolução (TMR)
+        tmr = ordens_tecnico.exclude(
+            data_inicio_executado__isnull=True, data_termino_executado__isnull=True
+        ).aggregate(
+            media=Avg(ExpressionWrapper(
+                F("data_termino_executado") - F("data_inicio_executado"),
+                output_field=fields.DurationField()
+            ))
+        )["media"]
+
+        # Contagem de OSs nos status específicos
+        qtd_pendente = ordens_tecnico.filter(status="Pendente").count()
+        qtd_concluida = ordens_tecnico.filter(status="Concluída").count()
+        qtd_em_execucao = ordens_tecnico.filter(status="Em Execução").count()
+
+        tecnicos_com_dados.append({
+            "tecnico": tecnico,
+            "media_atraso_execucao": formatar_tempo(media_atraso_execucao),
+            "media_atraso_conclusao": formatar_tempo(media_atraso_conclusao),
+            "tmr": formatar_tempo(tmr),
+            "qtd_pendente": qtd_pendente,
+            "qtd_concluida": qtd_concluida,
+            "qtd_em_execucao": qtd_em_execucao,  # Adicionado para manter consistência
+        })
+
+    return render(
+        request,
+        "expediente/tecnicos_em_expediente.html",
+        {"tecnicos_com_dados": tecnicos_com_dados},
+    )
+
+

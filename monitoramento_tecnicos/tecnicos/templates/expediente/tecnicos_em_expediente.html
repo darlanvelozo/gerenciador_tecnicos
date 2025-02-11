@@ -21,17 +21,27 @@
             <tr>
                 <th>Nome</th>
                 <th>Status</th>
+                <th>Média Atraso Execução</th>
+                <th>Média Atraso Conclusão</th>
+                <th>TMR</th>
+                <th>Qtd Pendente</th>
+                <th>Qtd Concluída</th>
             </tr>
         </thead>
         <tbody>
-            {% for tecnico in tecnicos %}
+            {% for item in tecnicos_com_dados %}
                 <tr>
-                    <td><a href="{% url 'detalhes_tecnico' tecnico.id %}">{{ tecnico.nome }}</a></td>
-                    <td>{{ tecnico.status }}</td>
+                    <td><a href="{% url 'detalhes_tecnico' item.tecnico.id %}">{{ item.tecnico.nome }}</a></td>
+                    <td>{{ item.tecnico.status }}</td>
+                    <td>{{ item.media_atraso_execucao|default:"-" }}</td>
+                    <td>{{ item.media_atraso_conclusao|default:"-" }}</td>
+                    <td>{{ item.tmr|default:"-" }}</td>
+                    <td>{{ item.qtd_pendente }}</td>
+                    <td>{{ item.qtd_concluida }}</td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="2">Nenhum técnico está em expediente no momento.</td>
+                    <td colspan="7">Nenhum técnico está em expediente no momento.</td>
                 </tr>
             {% endfor %}
         </tbody>

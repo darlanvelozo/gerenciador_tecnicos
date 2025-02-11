@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from .models import Tecnico, OrdemServico, Expediente, DiaSemana
 
+
 @admin.register(Tecnico)
 class TecnicoAdmin(admin.ModelAdmin):
     list_display = ('id', 'nome', 'status', 'listar_grupos')
@@ -67,3 +68,20 @@ class ExpedienteAdmin(admin.ModelAdmin):
 class DiaSemanaAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
+
+
+
+
+
+class TecnicoInline(admin.TabularInline):
+    model = Tecnico.grupos.through  # Liga Tecnico com Group
+    extra = 1  # Permite adicionar novos técnicos no grupo
+
+class GroupAdmin(admin.ModelAdmin):
+    inlines = [TecnicoInline]  # Adiciona a listagem dos técnicos dentro do Group
+
+# Removemos o Group do admin padrão
+admin.site.unregister(Group)
+
+# Registramos novamente com nosso novo admin
+admin.site.register(Group, GroupAdmin)
