@@ -1,24 +1,8 @@
-from django.shortcuts import render
-from django.utils.timezone import now
-from .models import Tecnico
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Avg, Count, F, ExpressionWrapper, fields
-from django.utils.timezone import now
-from datetime import timedelta
-from django.shortcuts import render
-from django.utils.timezone import now
-from .models import Tecnico, OrdemServico
-from django.db.models import Avg, Count, F, ExpressionWrapper, fields
-from django.db.models import Q
-
-from django.shortcuts import render
-from django.utils.timezone import now
-from .models import Tecnico, OrdemServico
-from django.db.models import Avg, Count, F, ExpressionWrapper, fields
-from django.shortcuts import render
 from django.utils import timezone
-from datetime import timedelta
+from django.db.models import Avg, Count, F, ExpressionWrapper, fields
 from .models import Tecnico, OrdemServico
+from datetime import timedelta
 
 def alarme_tecnico(request):
     # Obter a data e hora atuais
@@ -30,7 +14,7 @@ def alarme_tecnico(request):
     # Filtrar técnicos que estão em expediente (status diferente de "Fora Expediente") 
     # e que possuem ordens de serviço pendentes maiores que 0
     tecnicos = Tecnico.objects.filter(
-        ordens_servico__status__in=["Pendente", "Concluída"]
+        ordens_servico__status__in=["Pendente", "Concluída", "Em Andamento"]
     ).annotate(
         qtd_ordens=Count('ordens_servico')
     ).filter(qtd_ordens__gt=0).distinct()
@@ -134,21 +118,10 @@ def detalhes_tecnico(request, tecnico_id):
         "ordens_com_atraso": ordens_com_atraso,
     })
 
-
-
-
-# Função para formatar durações (dias, horas, minutos)
-
-
-from django.db.models import Avg, ExpressionWrapper, F, fields
-from django.shortcuts import render
-from .models import Tecnico, OrdemServico
-  # Supondo que formatar_tempo está em utils.py
-
 def tecnicos_em_expediente(request):
     # Filtrar técnicos que possuem ordens de serviço nos status desejados e não estão fora do expediente
     tecnicos = Tecnico.objects.filter(
-        ordens_servico__status__in=["Pendente", "Concluída", "Em Execução"]
+        ordens_servico__status__in=["Pendente", "Concluída", "Em Execução", "Em Andamento"]
     ).exclude(status="Fora Expediente").distinct()
 
     tecnicos_com_dados = []
