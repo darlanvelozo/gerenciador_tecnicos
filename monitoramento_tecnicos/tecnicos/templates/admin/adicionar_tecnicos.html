@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h2>Adicionar Técnicos ao Grupo: {{ group.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="tecnicos">Selecione os técnicos:</label><br>
+    <select name="tecnicos" multiple style="width: 100%; height: 200px;">
+        {% for tecnico in tecnicos %}
+        <option value="{{ tecnico.id }}">{{ tecnico.nome }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+    <button type="submit" class="button">Adicionar</button>
+</form>
+<a href="/admin/auth/group/">Voltar</a>
+{% endblock %}

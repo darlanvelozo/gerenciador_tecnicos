@@ -59,6 +59,7 @@
                     
                     <option value="em_atividade">Em atividade</option>
                     <option value="disponivel">Disponível</option>
+                    <option value="fora_expediente">Fora Expediente</option>
                 </select>
             </div>
         </div>
@@ -76,8 +77,8 @@
                             <strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}<br>
                             {% if tecnico.alarme %}
                             <strong class="text-danger">Alarme:</strong> {{ tecnico.alarme }}<br>
-                            <span class="cronometro" id="cronometro-{{ tecnico.tecnico.id }}">00:00:00</span>
                             {% endif %}
+                            <span class="cronometro {% if not tecnico.alarme %}text-success{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">00:00:00</span>
                         </p>
                         <a href="{% url 'detalhes_tecnico' tecnico.tecnico.id %}" class="btn btn-primary btn-sm">
                             Ver Detalhes
@@ -105,12 +106,11 @@
 
             const tecnicosComAlarme = [
                 {% for tecnico in tecnicos_com_dados %}
-                    {% if tecnico.alarme %}
-                        {
-                            id: "{{ tecnico.tecnico.id }}",
-                            ultimaAtualizacao: "{{ tecnico.ultima_atualizacao_status|date:'Y-m-d H:i:s' }}"
-                        },
-                    {% endif %}
+                    {
+                        id: "{{ tecnico.tecnico.id }}",
+                        ultimaAtualizacao: "{{ tecnico.ultima_atualizacao_status|date:'Y-m-d H:i:s' }}",
+                        alarme: {% if tecnico.alarme %}true{% else %}false{% endif %}
+                    },
                 {% endfor %}
             ];
 
@@ -141,7 +141,10 @@
                 const statusFiltro = this.value;
                 document.querySelectorAll(".tecnico-card").forEach(card => {
                     const status = card.getAttribute("data-status");
-                    card.style.display = statusFiltro === "" || status === statusFiltro || (statusFiltro === "em_atividade" && status === "Em Atividade") || (statusFiltro === "disponivel" && status === "Disponível") ? "block" : "none";
+                    card.style.display = statusFiltro === "" || status === statusFiltro || 
+                        (statusFiltro === "em_atividade" && status === "Em Atividade") || 
+                        (statusFiltro === "disponivel" && status === "Disponível") || 
+                        (statusFiltro === "fora_expediente" && status === "Fora Expediente") ? "block" : "none";
                 });
             });
         });

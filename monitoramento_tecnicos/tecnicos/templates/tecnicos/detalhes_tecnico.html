@@ -5,13 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do Técnico</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1, h2 { text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f4f4f4; }
-        a { text-decoration: none; color: blue; }
-        a:hover { text-decoration: underline; }
+        /* Reset básico */
+        body, h1, h2, h3, p, table, th, td {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #16a085;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #16a085;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+            transition: background-color 0.3s ease;
+        }
+
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .btn-voltar {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border-radius: 5px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-voltar:hover {
+            background-color: #2980b9;
+            text-decoration: none;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            table, th, td {
+                font-size: 0.9rem;
+            }
+
+            .btn-voltar {
+                width: 100%;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -46,10 +165,10 @@
                         <td>{{ item.os.id_cliente_servico }}</td>
                         <td>{{ item.os.tipo_os }}</td>
                         <td>{{ item.os.cidade }}</td>
-                        <td>{{ item.os.data_inicio_programado}}</td>
-                        <td>{{ item.os.data_inicio_executado}}</td>
-                        <td>{{ item.os.data_termino_programado}}</td>
-                        <td>{{ item.os.data_termino_executado}}</td>
+                        <td>{{ item.os.data_inicio_programado }}</td>
+                        <td>{{ item.os.data_inicio_executado }}</td>
+                        <td>{{ item.os.data_termino_programado }}</td>
+                        <td>{{ item.os.data_termino_executado }}</td>
                         <td>{{ item.atraso_execucao }}</td>
                         <td>{{ item.atraso_conclusao }}</td>
                     </tr>
@@ -60,6 +179,6 @@
         <p>Nenhuma ordem de serviço associada a este técnico.</p>
     {% endif %}
 
-    <p><a href="javascript:history.back()">Voltar para a página anterior</a></p>
+    <p><a href="javascript:history.back()" class="btn-voltar">Voltar para a página anterior</a></p>
 </body>
 </html>

@@ -22,16 +22,18 @@ from .models import Tecnico, OrdemServico
 
 def alarme_tecnico(request):
     # Obter a data e hora atuais
-    agora = timezone.now()
+    agora = timezone.localtime(timezone.now())
 
     # Lista para armazenar os dados dos técnicos
     tecnicos_com_dados = []
 
     # Filtrar técnicos que estão em expediente (status diferente de "Fora Expediente") 
     # e que possuem ordens de serviço pendentes maiores que 0
-    tecnicos = Tecnico.objects.exclude(status="Fora Expediente").annotate(
-        qtd_pendente=Count('ordens_servico', filter=Q(ordens_servico__status="Pendente"))
-    ).filter(qtd_pendente__gt=0)
+    tecnicos = Tecnico.objects.filter(
+        ordens_servico__status__in=["Pendente", "Concluída"]
+    ).annotate(
+        qtd_ordens=Count('ordens_servico')
+    ).filter(qtd_ordens__gt=0).distinct()
 
     for tecnico in tecnicos:
         # Filtrar ordens de serviço do técnico
@@ -58,9 +60,17 @@ def alarme_tecnico(request):
 
         # Situação 2: Técnico está em atividade e ultrapassou o prazo para finalizar uma OS
         if not alarme and tecnico.status == "Em Atividade":
-            for os in ordens_tecnico.filter(status="Em Atividade"):
-                if os.data_termino_programado:
-                    tempo_limite_fim = os.data_termino_programado + timedelta(minutes=20)
+            for os in ordens_tecnico.filter(status="Em Andamento"):
+                
+                if os.data_inicio_programado and os.data_termino_programado and os.data_inicio_executado:
+                    # Calcula o prazo programado para finalizar a OS
+                    prazo_programado = os.data_termino_programado - os.data_inicio_programado
+                    
+                    # Calcula o tempo limite considerando o início da execução + prazo programado + 20 minutos
+                    tempo_limite_fim = os.data_inicio_executado + prazo_programado  #+ timedelta(minutes=20)
+                    print("limite:" ,tempo_limite_fim)
+                    print('agora:', agora)
+                    # Verifica se o tempo atual ultrapassou o tempo limite
                     if agora > tempo_limite_fim:
                         alarme = "Ultrapassou Tempo Limite Disponível para Finalizar"
                         break
