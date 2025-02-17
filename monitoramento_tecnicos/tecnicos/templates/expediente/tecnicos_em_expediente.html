@@ -88,6 +88,11 @@
             color: #fff;
         }
 
+        .status-ajudante {
+            background-color: #f1c40f; /* Cor amarela para Ajudante */
+            color: #fff;
+        }
+
         .progress-bar {
             width: 100%;
             background-color: #e0e0e0;
@@ -153,7 +158,7 @@
                         </a>
                     </td>
                     <td>
-                        <span class="status {% if item.tecnico.status == 'Em Atividade' %}status-em-atividade{% else %}status-inativo{% endif %}">
+                        <span class="status {% if item.tecnico.status == 'Em Atividade' %}status-em-atividade{% elif item.tecnico.status == 'Ajudante' %}status-ajudante{% else %}status-inativo{% endif %}">
                             {{ item.tecnico.status }}
                         </span>
                     </td>
@@ -162,7 +167,7 @@
                             <div class="progress-bar">
                                 <div class="progress-bar-fill" style="width: {{ item.media_atraso_execucao }}%;"></div>
                             </div>
-                            {{ item.media_atraso_execucao }}%
+                            {{ item.media_atraso_execucao }}
                         {% else %}
                             -
                         {% endif %}
@@ -172,7 +177,7 @@
                             <div class="progress-bar">
                                 <div class="progress-bar-fill" style="width: {{ item.media_atraso_conclusao }}%;"></div>
                             </div>
-                            {{ item.media_atraso_conclusao }}%
+                            {{ item.media_atraso_conclusao }}
                         {% else %}
                             -
                         {% endif %}

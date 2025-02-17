@@ -35,7 +35,7 @@ def alarme_tecnico(request):
 
         # Verificar situações de alarme
         alarme = None
-
+        
         # Situação 1: Técnico está disponível por mais de 20 minutos
         if tecnico.status == "Disponível":
             tempo_disponivel = agora - tecnico.ultima_atualizacao_status
@@ -58,7 +58,6 @@ def alarme_tecnico(request):
                     if agora > tempo_limite_fim:
                         alarme = "Ultrapassou Tempo Limite Disponível para Finalizar"
                         break
-
         # Adicionar dados do técnico à lista
         tecnicos_com_dados.append({
             "tecnico": tecnico,
@@ -93,7 +92,10 @@ def formatar_tempo(duracao):
 
 def detalhes_tecnico(request, tecnico_id):
     tecnico = get_object_or_404(Tecnico, id=tecnico_id)
-    ordens_servico = tecnico.ordens_servico.exclude(status="Concluída")
+    ordens_servico = tecnico.ordens_servico.exclude(status="Concluída").order_by(
+        F('status').asc(),  # Primeiro, ordena pelo status
+        F('data_inicio_programado').desc()  # Depois, pela data de início programado
+    )
 
     ordens_com_atraso = []
     for os in ordens_servico:

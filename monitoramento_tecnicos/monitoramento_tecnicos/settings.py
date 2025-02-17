@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k00)0#2#+mdw)f(%eibr+17l7m83)re*0b%4g&h&$269bq+*6*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['tecinfo.megalinkpiaui.com.br', '187.62.153.53']
 
@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000 
 ROOT_URLCONF = 'monitoramento_tecnicos.urls'
 
 TEMPLATES = [

@@ -10,6 +10,13 @@ class Tecnico(models.Model):
         ("Em Atividade", "Em Atividade"),
         ("Fora Expediente", "Fora Expediente"),
         ("Disponível", "Disponível"),
+        ("Ajudante", "Ajudante"),
+
+    ]
+    #setor = EMPRESA
+    SETOR_CHOICES = [
+        ("Megalink", "Megalink"),
+        ("BJ Fibra", "BJ Fibra"),
     ]
 
     id = models.BigAutoField(primary_key=True)
@@ -17,6 +24,7 @@ class Tecnico(models.Model):
     grupos = models.ManyToManyField(Group, related_name="tecnicos", verbose_name="Grupos de Permissão")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Fora Expediente", verbose_name="Status")
     ultima_atualizacao_status = models.DateTimeField(auto_now=True, verbose_name="Última Atualização do Status")
+    setor = models.CharField(max_length=50, choices=SETOR_CHOICES, default="Megalink", verbose_name="Setor")
     
     def atualizar_status(self):
         """
