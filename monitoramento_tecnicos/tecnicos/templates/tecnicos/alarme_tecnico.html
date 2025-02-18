@@ -127,10 +127,15 @@
         <h1 class="my-4 text-center">Monitoramento de Técnicos em Expediente</h1>
         <p class="lead text-center">Acompanhe o status dos técnicos e identifique situações de alarme.</p>
 
-        <!-- Botão para Toggle dos Filtros -->
-        <button id="btnToggleFiltros" class="btn btn-primary btn-toggle-filtros">
-            <i class="fas fa-filter"></i> Mostrar/Ocultar Filtros
-        </button>
+        <!-- Botão de Configuração -->
+        <div class="text-center mb-4 d-flex justify-content-center">
+            <a href="https://tecinfo.megalinkpiaui.com.br/admin" class="btn btn-warning me-2">
+                <i class="fas fa-cog"></i> Configuração
+            </a>
+            <button id="btnToggleFiltros" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Mostrar/Ocultar Filtros
+            </button>
+        </div>
 
         <!-- Filtros -->
         <div class="filtro" id="filtroSection">
@@ -153,7 +158,7 @@
                     <label for="filtroSetor"><i class="fas fa-building"></i> Empresa</label>
                     <select id="filtroSetor" class="form-control">
                         <option value="">Todas</option>
-                        <option value="Técnico - Varejo">Megalink</option>
+                        <option value="Megalink">Megalink</option>
                         <option value="BJ Fibra">BJ Fibra</option>
                     </select>
                 </div>
@@ -175,146 +180,158 @@
             </div>
         </div>
         
-        <!-- Cards dos Técnicos -->
-        <div class="row" id="listaTecnicos">
-            {% for tecnico in tecnicos_com_dados %}
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 tecnico-card" 
-                 data-nome="{{ tecnico.tecnico.nome }}" 
-                 data-status="{{ tecnico.tecnico.status }}" 
-                 data-setor="{{ tecnico.tecnico.setor }}" 
-                 data-alarme="{% if tecnico.alarme %}true{% else %}false{% endif %}">
-                <div class="card {% if tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ tecnico.tecnico.nome }}</h5>
-                        
-                        <!-- Informações do Técnico -->
-                        <div class="card-info">
-                            <i class="fas fa-info-circle"></i>
-                            <span><strong>Status:</strong> {{ tecnico.tecnico.status }}</span>
-                        </div>
-                        <div class="card-info">
-                            <i class="fas fa-tasks"></i>
-                            <span><strong>OS Pendentes:</strong> {{ tecnico.qtd_pendente }}</span>
-                        </div>
-                        <div class="card-info">
-                            <i class="fas fa-check-circle"></i>
-                            <span><strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}</span>
-                        </div>
-                        {% if tecnico.alarme %}
-                        <div class="card-info">
-                            <i class="fas fa-bell"></i>
-                            <span class="text-danger"><strong>Alarme:</strong> {{ tecnico.alarme }}</span>
-                        </div>
-                        {% endif %}
-
-                        <!-- Cronômetro -->
-                        <div class="cronometro {% if tecnico.alarme %}alarme{% else %}sem-alarme{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">
-                            00:00:00
-                        </div>
-
-                        <!-- Botões de Ação -->
-                        <div>
-                            <a href="{% url 'detalhes_tecnico' tecnico.tecnico.id %}" class="btn btn-primary btn-card">
+<!-- Cards dos Técnicos -->
+<div class="row" id="listaTecnicos">
+    {% for tecnico in tecnicos_com_dados %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4 tecnico-card" 
+         data-nome="{{ tecnico.tecnico.nome }}" 
+         data-status="{{ tecnico.tecnico.status }}" 
+         data-setor="{{ tecnico.tecnico.setor }}" 
+         data-alarme="{% if tecnico.alarme %}true{% else %}false{% endif %}">
+        <div class="card {% if tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-body">
+                <!-- Cabeçalho do Card com Menu de Ações -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">{{ tecnico.tecnico.nome }}</h5>
+                    <!-- Menu Suspenso de Ações -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton-{{ tecnico.tecnico.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i> <!-- Ícone de três pontos -->
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton-{{ tecnico.tecnico.id }}">
+                            <a href="{% url 'detalhes_tecnico' tecnico.tecnico.id %}" class="dropdown-item">
                                 <i class="fas fa-eye"></i> Ver Detalhes
                             </a>
-                            <a href="{% url 'tecnicos_em_expediente' %}" class="btn btn-secondary btn-card">
+                            <a href="{% url 'tecnicos_em_expediente' %}" class="dropdown-item">
                                 <i class="fas fa-chart-line"></i> Ver Métricas
+                            </a>
+                            <a href="https://tecinfo.megalinkpiaui.com.br/admin/tecnicos/tecnico/{{ tecnico.tecnico.id }}/change/" 
+                               class="dropdown-item" 
+                               target="_blank">
+                                <i class="fas fa-cog"></i> Editar
                             </a>
                         </div>
                     </div>
                 </div>
+
+                <!-- Informações do Técnico -->
+                <div class="card-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span><strong>Status:</strong> {{ tecnico.tecnico.status }}</span>
+                </div>
+                <div class="card-info">
+                    <i class="fas fa-tasks"></i>
+                    <span><strong>OS Pendentes:</strong> {{ tecnico.qtd_pendente }}</span>
+                </div>
+                <div class="card-info">
+                    <i class="fas fa-check-circle"></i>
+                    <span><strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}</span>
+                </div>
+                {% if tecnico.alarme %}
+                <div class="card-info">
+                    <i class="fas fa-bell"></i>
+                    <span class="text-danger"><strong>Alarme:</strong> {{ tecnico.alarme }}</span>
+                </div>
+                {% endif %}
+
+                <!-- Cronômetro -->
+                <div class="cronometro {% if tecnico.alarme %}alarme{% else %}sem-alarme{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">
+                    00:00:00
+                </div>
             </div>
-            {% endfor %}
         </div>
     </div>
+    {% endfor %}
+</div>
+        
+        <!-- Bootstrap JS e Dependências -->
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
-    <!-- Bootstrap JS e Dependências -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-
-    <!-- Script para o Cronômetro, Filtros e Toggle -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Formatação do tempo
-            function formatarTempo(segundos) {
-                const horas = Math.floor(segundos / 3600);
-                const minutos = Math.floor((segundos % 3600) / 60);
-                const segundosRestantes = segundos % 60;
-                return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-            }
-            
-            // Inicialização dos cronômetros
-            const tecnicosComAlarme = [
-                {% for tecnico in tecnicos_com_dados %}
-                    {
-                        id: "{{ tecnico.tecnico.id }}",
-                        ultimaAtualizacao: "{{ tecnico.ultima_atualizacao_status|date:'Y-m-d H:i:s' }}",
-                        alarme: {% if tecnico.alarme %}true{% else %}false{% endif %}
-                    },
-                {% endfor %}
-            ];
-
-            tecnicosComAlarme.forEach(function(tecnico) {
-                const inicioAlarme = new Date(tecnico.ultimaAtualizacao).getTime();
-                const agora = new Date().getTime();
-                let tempoDecorrido = Math.floor((agora - inicioAlarme) / 1000);
-
-                const cronometro = document.getElementById("cronometro-" + tecnico.id);
-                if (cronometro) {
-                    setInterval(function() {
-                        tempoDecorrido++;
-                        cronometro.textContent = formatarTempo(tempoDecorrido);
-                    }, 1000);
+        <!-- Script para o Cronômetro, Filtros e Toggle -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                // Formatação do tempo
+                function formatarTempo(segundos) {
+                    const horas = Math.floor(segundos / 3600);
+                    const minutos = Math.floor((segundos % 3600) / 60);
+                    const segundosRestantes = segundos % 60;
+                    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
                 }
-            });
+                
+                // Inicialização dos cronômetros
+                const tecnicosComAlarme = [
+                    {% for tecnico in tecnicos_com_dados %}
+                        {
+                            id: "{{ tecnico.tecnico.id }}",
+                            ultimaAtualizacao: "{{ tecnico.ultima_atualizacao_status|date:'Y-m-d H:i:s' }}",
+                            alarme: {% if tecnico.alarme %}true{% else %}false{% endif %}
+                        },
+                    {% endfor %}
+                ];
 
-            // Função para aplicar filtros
-            function aplicarFiltros() {
-                const nomeFiltro = document.getElementById("filtroNome").value.toLowerCase();
-                const statusFiltro = document.getElementById("filtroStatus").value;
-                const setorFiltro = document.getElementById("filtroSetor").value;
-                const alarmeFiltro = document.getElementById("filtroAlarme").value;
+                tecnicosComAlarme.forEach(function(tecnico) {
+                    const inicioAlarme = new Date(tecnico.ultimaAtualizacao).getTime();
+                    const agora = new Date().getTime();
+                    let tempoDecorrido = Math.floor((agora - inicioAlarme) / 1000);
 
-                document.querySelectorAll(".tecnico-card").forEach(card => {
-                    const nome = card.getAttribute("data-nome").toLowerCase();
-                    const status = card.getAttribute("data-status");
-                    const setor = card.getAttribute("data-setor");
-                    const alarme = card.getAttribute("data-alarme");
-
-                    const nomeMatch = nome.includes(nomeFiltro);
-                    const statusMatch = statusFiltro === "" || status === statusFiltro;
-                    const setorMatch = setorFiltro === "" || setor === setorFiltro;
-                    const alarmeMatch = alarmeFiltro === "" || alarme === alarmeFiltro;
-
-                    card.style.display = (nomeMatch && statusMatch && setorMatch && alarmeMatch) ? "block" : "none";
+                    const cronometro = document.getElementById("cronometro-" + tecnico.id);
+                    if (cronometro) {
+                        setInterval(function() {
+                            tempoDecorrido++;
+                            cronometro.textContent = formatarTempo(tempoDecorrido);
+                        }, 1000);
+                    }
                 });
-            }
 
-            // Eventos para filtros
-            document.getElementById("filtroNome").addEventListener("input", aplicarFiltros);
-            document.getElementById("filtroStatus").addEventListener("change", aplicarFiltros);
-            document.getElementById("filtroSetor").addEventListener("change", aplicarFiltros);
-            document.getElementById("filtroAlarme").addEventListener("change", aplicarFiltros);
+                // Função para aplicar filtros
+                function aplicarFiltros() {
+                    const nomeFiltro = document.getElementById("filtroNome").value.toLowerCase();
+                    const statusFiltro = document.getElementById("filtroStatus").value;
+                    const setorFiltro = document.getElementById("filtroSetor").value;
+                    const alarmeFiltro = document.getElementById("filtroAlarme").value;
 
-            // Limpar filtros
-            document.getElementById("btnLimparFiltros").addEventListener("click", function() {
-                document.getElementById("filtroNome").value = "";
-                document.getElementById("filtroStatus").value = "";
-                document.getElementById("filtroSetor").value = "";
-                document.getElementById("filtroAlarme").value = "";
-                aplicarFiltros();
-            });
+                    document.querySelectorAll(".tecnico-card").forEach(card => {
+                        const nome = card.getAttribute("data-nome").toLowerCase();
+                        const status = card.getAttribute("data-status");
+                        const setor = card.getAttribute("data-setor");
+                        const alarme = card.getAttribute("data-alarme");
 
-            // Toggle dos Filtros
-            document.getElementById("btnToggleFiltros").addEventListener("click", function() {
-                const filtroSection = document.getElementById("filtroSection");
-                if (filtroSection.style.display === "none") {
-                    filtroSection.style.display = "block";
-                } else {
-                    filtroSection.style.display = "none";
+                        const nomeMatch = nome.includes(nomeFiltro);
+                        const statusMatch = statusFiltro === "" || status === statusFiltro;
+                        const setorMatch = setorFiltro === "" || setor === setorFiltro;
+                        const alarmeMatch = alarmeFiltro === "" || alarme === alarmeFiltro;
+
+                        card.style.display = (nomeMatch && statusMatch && setorMatch && alarmeMatch) ? "block" : "none";
+                    });
                 }
+
+                // Eventos para filtros
+                document.getElementById("filtroNome").addEventListener("input", aplicarFiltros);
+                document.getElementById("filtroStatus").addEventListener("change", aplicarFiltros);
+                document.getElementById("filtroSetor").addEventListener("change", aplicarFiltros);
+                document.getElementById("filtroAlarme").addEventListener("change", aplicarFiltros);
+
+                // Limpar filtros
+                document.getElementById("btnLimparFiltros").addEventListener("click", function() {
+                    document.getElementById("filtroNome").value = "";
+                    document.getElementById("filtroStatus").value = "";
+                    document.getElementById("filtroSetor").value = "";
+                    document.getElementById("filtroAlarme").value = "";
+                    aplicarFiltros();
+                });
+
+                // Toggle dos Filtros
+                document.getElementById("btnToggleFiltros").addEventListener("click", function() {
+                    const filtroSection = document.getElementById("filtroSection");
+                    if (filtroSection.style.display === "none") {
+                        filtroSection.style.display = "block";
+                    } else {
+                        filtroSection.style.display = "none";
+                    }
+                });
             });
-        });
-    </script>
+        </script>
+    </div>
 </body>
 </html>
