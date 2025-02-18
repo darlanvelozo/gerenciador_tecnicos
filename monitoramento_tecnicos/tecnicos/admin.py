@@ -5,7 +5,7 @@ from .models import Tecnico, OrdemServico, Expediente, DiaSemana
 
 @admin.register(Tecnico)
 class TecnicoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'status', 'listar_grupos')
+    list_display = ('id', 'nome', 'status', 'listar_grupos', 'cidade')
     list_filter = ('grupos',)  # Removido 'status' que estava causando erro
     search_fields = ('nome',)
     filter_horizontal = ('grupos',)

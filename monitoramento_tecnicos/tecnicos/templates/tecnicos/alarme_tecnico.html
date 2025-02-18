@@ -188,7 +188,7 @@
          data-status="{{ tecnico.tecnico.status }}" 
          data-setor="{{ tecnico.tecnico.setor }}" 
          data-alarme="{% if tecnico.alarme %}true{% else %}false{% endif %}">
-        <div class="card {% if tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
+        <div class="card {% if tecnico.alarme == 'Técnico sem Ordens de Serviço atribuídas' %}border-warning{% elif tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
             <div class="card-body">
                 <!-- Cabeçalho do Card com Menu de Ações -->
                 <div class="d-flex justify-content-between align-items-center">
@@ -227,6 +227,7 @@
                     <i class="fas fa-check-circle"></i>
                     <span><strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}</span>
                 </div>
+                
                 {% if tecnico.alarme %}
                 <div class="card-info">
                     <i class="fas fa-bell"></i>
@@ -237,6 +238,12 @@
                 <!-- Cronômetro -->
                 <div class="cronometro {% if tecnico.alarme %}alarme{% else %}sem-alarme{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">
                     00:00:00
+                </div>
+
+                <!-- Cidade do Técnico -->
+                <div class="text-center mt-3">
+                    <strong>{{ tecnico.tecnico.cidade }} </strong> 
+                    <span class="text-muted">({{ tecnico.qtd_ordens_por_cidade }} ordens pendentes)</span>
                 </div>
             </div>
         </div>

@@ -19,12 +19,70 @@ class Tecnico(models.Model):
         ("BJ Fibra", "BJ Fibra"),
     ]
 
+    CIDADE_CHOICES = [
+        ("Água Branca", "Água Branca"),
+        ("Alagoinha Do Piauí", "Alagoinha Do Piauí"),
+        ("Amarante", "Amarante"),
+        ("Angical Do Piauí", "Angical Do Piauí"),
+        ("Aroazes", "Aroazes"),
+        ("Balsas", "Balsas"),
+        ("Barão De Grajaú", "Barão De Grajaú"),
+        ("Batalha", "Batalha"),
+        ("Caridade Do Piauí", "Caridade Do Piauí"),
+        ("Caxias", "Caxias"),
+        ("Cocal", "Cocal"),
+        ("Colinas", "Colinas"),
+        ("Colônia Do Gurguéia", "Colônia Do Gurguéia"),
+        ("Corrente", "Corrente"),
+        ("Eliseu Martins", "Eliseu Martins"),
+        ("Floriano", "Floriano"),
+        ("Formosa Do Rio Preto", "Formosa Do Rio Preto"),
+        ("Fortaleza", "Fortaleza"),
+        ("Fronteiras", "Fronteiras"),
+        ("Geminiano", "Geminiano"),
+        ("Guadalupe", "Guadalupe"),
+        ("Imperatriz", "Imperatriz"),
+        ("Ipiranga Do Piauí", "Ipiranga Do Piauí"),
+        ("Isaías Coelho", "Isaías Coelho"),
+        ("Itainópolis", "Itainópolis"),
+        ("Itapecuru Mirim", "Itapecuru Mirim"),
+        ("Landri Sales", "Landri Sales"),
+        ("Manaus", "Manaus"),
+        ("Matões", "Matões"),
+        ("Monsenhor Gil", "Monsenhor Gil"),
+        ("Nazaré Do Piauí", "Nazaré Do Piauí"),
+        ("Nazária", "Nazária"),
+        ("Oeiras", "Oeiras"),
+        ("Parnarama", "Parnarama"),
+        ("Paulistana", "Paulistana"),
+        ("Picos", "Picos"),
+        ("Pimenteiras", "Pimenteiras"),
+        ("Piripiri", "Piripiri"),
+        ("Presidente Dutra", "Presidente Dutra"),
+        ("Recife", "Recife"),
+        ("Regeneração", "Regeneração"),
+        ("Santana Do Maranhão", "Santana Do Maranhão"),
+        ("São Francisco Do Piauí", "São Francisco Do Piauí"),
+        ("São João Do Piauí", "São João Do Piauí"),
+        ("São Luís", "São Luís"),
+        ("São Paulo", "São Paulo"),
+        ("São Pedro Do Piauí", "São Pedro Do Piauí"),
+        ("Simplício Mendes", "Simplício Mendes"),
+        ("Sussuapara", "Sussuapara"),
+        ("Teresina", "Teresina"),
+        ("Tutóia", "Tutóia"),
+        ("Urbano Santos", "Urbano Santos"),
+        ("Valença Do Piauí", "Valença Do Piauí"),
+        ("Vera Mendes", "Vera Mendes"),
+    ]
+
     id = models.BigAutoField(primary_key=True)
     nome = models.CharField(max_length=100, verbose_name="Nome do Técnico")
     grupos = models.ManyToManyField(Group, related_name="tecnicos", verbose_name="Grupos de Permissão")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Fora Expediente", verbose_name="Status")
     ultima_atualizacao_status = models.DateTimeField(auto_now=True, verbose_name="Última Atualização do Status")
     setor = models.CharField(max_length=50, choices=SETOR_CHOICES, default="Megalink", verbose_name="Setor")
+    cidade = models.CharField(max_length=50, choices=CIDADE_CHOICES, default="Floriano", verbose_name="Cidade")
     
     def atualizar_status(self):
         """

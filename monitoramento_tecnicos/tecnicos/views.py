@@ -58,6 +58,14 @@ def alarme_tecnico(request):
                     if agora > tempo_limite_fim:
                         alarme = "Ultrapassou Tempo Limite Disponível para Finalizar"
                         break
+
+        # Nova Situação: Técnico sem Ordens de Serviço atribuídas
+        if not alarme and tecnico.status != "Ajudante" and qtd_pendente == 0:
+            alarme = "Técnico sem Ordens de Serviço atribuídas"
+
+        # Nova lógica para contar ordens de serviço pendentes por cidade
+        ordens_por_cidade = OrdemServico.objects.filter(cidade=tecnico.cidade, status="Pendente").count()
+
         # Adicionar dados do técnico à lista
         tecnicos_com_dados.append({
             "tecnico": tecnico,
@@ -65,6 +73,8 @@ def alarme_tecnico(request):
             "qtd_concluida_hoje": qtd_concluida_hoje,
             "alarme": alarme,
             "ultima_atualizacao_status": tecnico.ultima_atualizacao_status,
+            "cidade": tecnico.cidade,
+            "qtd_ordens_por_cidade": ordens_por_cidade  # Adicionando a quantidade de ordens por cidade
         })
 
     # Renderizar a página com os dados
