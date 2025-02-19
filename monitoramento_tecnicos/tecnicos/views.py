@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+from django.db.models import Avg, Count, F, ExpressionWrapper, fields, Case, When, IntegerField
 from .models import Tecnico, OrdemServico
 from datetime import timedelta
 
@@ -18,6 +18,18 @@ def alarme_tecnico(request):
     ).annotate(
         qtd_ordens=Count('ordens_servico')
     ).filter(qtd_ordens__gt=0).distinct()
+
+    # Contadores para status dos técnicos e alarme
+    contagem_status = {
+        "Disponivel": 0,
+        "EmAtividade": 0,
+        "Ajudante": 0,
+        "ForaExpediente": 0,
+    }
+    contagem_alarme = {
+        "com_alarme": 0,
+        "sem_alarme": 0,
+    }
 
     for tecnico in tecnicos:
         # Filtrar ordens de serviço do técnico
@@ -60,11 +72,27 @@ def alarme_tecnico(request):
                         break
 
         # Nova Situação: Técnico sem Ordens de Serviço atribuídas
-        if not alarme and tecnico.status != "Ajudante" and qtd_pendente == 0:
+        if not alarme and tecnico.status != "Ajudante" and tecnico.status != "Em Atividade" and qtd_pendente == 0 :
             alarme = "Técnico sem Ordens de Serviço atribuídas"
 
         # Nova lógica para contar ordens de serviço pendentes por cidade
         ordens_por_cidade = OrdemServico.objects.filter(cidade=tecnico.cidade, status="Pendente").count()
+        
+        # Atualizar contagem de status
+        if tecnico.status == "Disponível":
+            contagem_status["Disponivel"] += 1
+        elif tecnico.status == "Em Atividade":
+            contagem_status["EmAtividade"] += 1
+        elif tecnico.status == "Ajudante":
+            contagem_status["Ajudante"] += 1
+        elif tecnico.status == "Fora Expediente":
+            contagem_status["ForaExpediente"] += 1
+
+        # Atualizar contagem de alarme
+        if alarme:
+            contagem_alarme["com_alarme"] += 1
+        else:
+            contagem_alarme["sem_alarme"] += 1
 
         # Adicionar dados do técnico à lista
         tecnicos_com_dados.append({
@@ -77,11 +105,15 @@ def alarme_tecnico(request):
             "qtd_ordens_por_cidade": ordens_por_cidade  # Adicionando a quantidade de ordens por cidade
         })
 
-    # Renderizar a página com os dados
+    # Renderizar a página com os dados e contagens
     return render(
         request,
         "tecnicos/alarme_tecnico.html",
-        {"tecnicos_com_dados": tecnicos_com_dados},
+        {
+            "tecnicos_com_dados": tecnicos_com_dados,
+            "contagem_status": contagem_status,  # Passando contagem de status
+            "contagem_alarme": contagem_alarme,    # Passando contagem de alarme
+        },
     )
 
 def formatar_tempo(duracao):
@@ -102,10 +134,18 @@ def formatar_tempo(duracao):
 
 def detalhes_tecnico(request, tecnico_id):
     tecnico = get_object_or_404(Tecnico, id=tecnico_id)
-    ordens_servico = tecnico.ordens_servico.exclude(status="Concluída").order_by(
+    ordens_servico = tecnico.ordens_servico.order_by(  # Incluindo ordens concluídas
         F('status').asc(),  # Primeiro, ordena pelo status
         F('data_inicio_programado').desc()  # Depois, pela data de início programado
-    )
+    ).annotate(
+        status_order=Case(
+            When(status="Em Andamento", then=1),
+            When(status="Pendente", then=2),
+            When(status="Concluída", then=3),
+            default=4,
+            output_field=IntegerField(),
+        )
+    ).order_by('status_order', 'data_inicio_programado')
 
     ordens_com_atraso = []
     for os in ordens_servico:

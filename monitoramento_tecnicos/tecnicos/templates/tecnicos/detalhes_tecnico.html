@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do Técnico</title>
+    <!-- Ícones do FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* Reset básico */
         body, h1, h2, h3, p, table, th, td {
@@ -75,6 +77,22 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Cores para os status das ordens de serviço */
+        .status-concluida {
+            background-color: #d4edda; /* Verde claro */
+            color: #155724; /* Verde escuro */
+        }
+
+        .status-pendente {
+            background-color: #fff3cd; /* Amarelo claro */
+            color: #856404; /* Amarelo escuro */
+        }
+
+        .status-andamento {
+            background-color: #d1ecf1; /* Azul claro */
+            color: #0c5460; /* Azul escuro */
+        }
+
         a {
             text-decoration: none;
             color: #3498db;
@@ -106,6 +124,23 @@
         .btn-voltar:hover {
             background-color: #2980b9;
             text-decoration: none;
+        }
+
+        /* Ícones para status */
+        .status-icon {
+            margin-right: 8px;
+        }
+
+        .status-concluida .status-icon {
+            color: #28a745; /* Verde */
+        }
+
+        .status-pendente .status-icon {
+            color: #ffc107; /* Amarelo */
+        }
+
+        .status-andamento .status-icon {
+            color: #17a2b8; /* Azul */
         }
 
         /* Responsividade */
@@ -158,10 +193,21 @@
             </thead>
             <tbody>
                 {% for item in ordens_com_atraso %}
-                    <tr>
+                    <tr class="
+                        {% if item.os.status == 'Concluída' %}status-concluida
+                        {% elif item.os.status == 'Pendente' %}status-pendente
+                        {% elif item.os.status == 'Em Andamento' %}status-andamento
+                        {% endif %}">
                         <td>{{ item.os.numero_ordem_servico }}</td>
                         <td>{{ item.os.data_cadastro }}</td>
-                        <td>{{ item.os.status }}</td>
+                        <td>
+                            <i class="fas 
+                                {% if item.os.status == 'Concluída' %}fa-check-circle status-icon
+                                {% elif item.os.status == 'Pendente' %}fa-exclamation-circle status-icon
+                                {% elif item.os.status == 'Em Andamento' %}fa-sync-alt status-icon
+                                {% endif %}"></i>
+                            {{ item.os.status }}
+                        </td>
                         <td>{{ item.os.id_cliente_servico }}</td>
                         <td>{{ item.os.tipo_os }}</td>
                         <td>{{ item.os.cidade }}</td>
@@ -179,6 +225,6 @@
         <p>Nenhuma ordem de serviço associada a este técnico.</p>
     {% endif %}
 
-    <p><a href="javascript:history.back()" class="btn-voltar">Voltar para a página anterior</a></p>
+    <p><a href="javascript:history.back()" class="btn-voltar"><i class="fas fa-arrow-left"></i> Voltar para a página anterior</a></p>
 </body>
 </html>

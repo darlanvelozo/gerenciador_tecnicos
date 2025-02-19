@@ -396,21 +396,23 @@ def atualizar_status_tecnico(conn, status):
 
 
 
+from datetime import datetime
+
 def atualizar_status_tecnicos_com_regras(conn):
     """
-    Atualiza o status dos técnicos com base nas regras fornecidas:
+    Atualiza o status dos técnicos com base nas regras fornecidas, considerando o horário de almoço:
     - Se o técnico tem alguma OS em andamento: "Em Atividade".
     - Se o técnico só tem OS pendentes ou concluídas e está no horário de expediente: "Disponível".
     - Se o técnico está fora do horário e dia de expediente: "Fora Expediente".
+    - Se o técnico está no horário de almoço e seu status for "Disponível", ele muda para "Fora Expediente".
     - Se o técnico não tem horário ou dias de expediente definidos: "Horário Indefinido".
-    Atualiza o campo ultima_atualizacao_status apenas quando o status é alterado.
     """
-    # Obter a data e hora atuais
+
     agora = datetime.now()
     dia_semana_atual = agora.strftime("%A")  # Dia da semana atual em inglês
     horario_atual = agora.time()  # Horário atual
 
-    # Mapeamento de dias da semana em português para inglês
+    # Mapeamento de dias da semana
     dias_semana_map = {
         "Domingo": "Sunday",
         "Segunda-feira": "Monday",
@@ -430,7 +432,9 @@ def atualizar_status_tecnicos_com_regras(conn):
         t.ultima_atualizacao_status,
         e.horario_inicio_expediente,
         e.horario_fim_expediente,
-        STRING_AGG(DISTINCT ds.nome, ', ') AS dias_semana,  -- Remover duplicatas aqui
+        e.horario_inicio_almoco,
+        e.horario_fim_almoco,
+        STRING_AGG(DISTINCT ds.nome, ', ') AS dias_semana,
         COUNT(os.id_ordem_servico) FILTER (WHERE os.data_termino_executado IS NULL) AS os_pendentes,
         COUNT(os.id_ordem_servico) FILTER (WHERE os.data_termino_executado IS NOT NULL) AS os_concluidas,
         COUNT(os.id_ordem_servico) FILTER (WHERE os.status = 'Em Andamento') AS os_em_andamento
@@ -449,7 +453,7 @@ def atualizar_status_tecnicos_com_regras(conn):
     LEFT JOIN 
         tecnicos_ordemservico os ON ot.ordemservico_id = os.id_ordem_servico
     GROUP BY 
-        t.id, e.horario_inicio_expediente, e.horario_fim_expediente
+        t.id, e.horario_inicio_expediente, e.horario_fim_expediente, e.horario_inicio_almoco, e.horario_fim_almoco
     """
 
     try:
@@ -465,6 +469,8 @@ def atualizar_status_tecnicos_com_regras(conn):
                 ultima_atualizacao_status,
                 horario_inicio,
                 horario_fim,
+                horario_inicio_almoco,
+                horario_fim_almoco,
                 dias_semana,
                 os_pendentes,
                 os_concluidas,
@@ -475,9 +481,17 @@ def atualizar_status_tecnicos_com_regras(conn):
             if not dias_semana or not horario_inicio or not horario_fim:
                 novo_status = "Horário Indefinido"
             else:
-                # Verificar se o técnico está dentro do horário de expediente
+                # Converter dias de trabalho para inglês
                 dias_trabalho = [dias_semana_map[dia.strip()] for dia in dias_semana.split(",")]
+
+                # Verificar se está no horário de expediente
                 dentro_expediente = (dia_semana_atual in dias_trabalho) and (horario_inicio <= horario_atual <= horario_fim)
+
+                # Verificar se está no horário de almoço
+                if horario_inicio_almoco and horario_fim_almoco:
+                    em_horario_almoco = horario_inicio_almoco <= horario_atual <= horario_fim_almoco
+                else:
+                    em_horario_almoco = False  # Se não tiver horário de almoço definido, não está no horário de almoço
 
                 # Definir o status com base nas regras
                 if os_em_andamento > 0:
@@ -487,15 +501,16 @@ def atualizar_status_tecnicos_com_regras(conn):
                 else:
                     novo_status = "Disponível" if dentro_expediente else "Fora Expediente"
 
-            # Adicionando impressão da informação se está dentro do horário e dia
-            print(f"Técnico: {nome} (ID: {tecnico_id}) - Dentro do horário de expediente: {'Sim' if dentro_expediente else 'Não'}")
+                # Se o técnico está no horário de almoço e seu status é "Disponível", mudar para "Fora Expediente"
+                if em_horario_almoco and novo_status == "Disponível":
+                    novo_status = "Fora Expediente"
 
-            # Print para avaliar o status
-            print(f"Técnico: {nome} (ID: {tecnico_id}) - Status Atual: {status_atual} | Novo Status: {novo_status} | Dia Atual: {dia_semana_atual} | Horário de Início: {horario_inicio} | Horário de Fim: {horario_fim} | Dias em Expediente: {dias_semana}")
+            # Debugging
+            print(f"Técnico: {nome} (ID: {tecnico_id}) - Dentro do expediente: {'Sim' if dentro_expediente else 'Não'} | Em horário de almoço: {'Sim' if em_horario_almoco else 'Não'}")
+            print(f"Técnico: {nome} (ID: {tecnico_id}) - Status Atual: {status_atual} | Novo Status: {novo_status}")
 
-            # Atualizar o status do técnico e o campo ultima_atualizacao_status apenas se o status mudar
+            # Atualizar o status do técnico no banco de dados apenas se houver mudança
             if status_atual != novo_status and status_atual != "Ajudante":
-                # Atualizar o status e o campo ultima_atualizacao_status
                 query_atualizacao = """
                 UPDATE tecnicos_tecnico
                 SET status = %s, ultima_atualizacao_status = %s
@@ -505,10 +520,11 @@ def atualizar_status_tecnicos_com_regras(conn):
                 conn.commit()
                 print(f"Status do técnico {nome} (ID: {tecnico_id}) atualizado para {novo_status}.")
 
-        print("Status dos técnicos atualizados com base nas regras.")
+        print("Status dos técnicos atualizado com sucesso.")
     except Exception as e:
         print(f"Erro ao atualizar o status dos técnicos: {e}")
         conn.rollback()
+
 
 def atualizar_status_tecnico(conn, status, tecnico_id=None):
     """

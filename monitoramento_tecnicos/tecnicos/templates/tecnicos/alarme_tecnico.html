@@ -12,7 +12,10 @@
     <style>
         body {
             background: linear-gradient(to right, #f8f9fa, #e9ecef);
-            padding: 20px;
+            padding-top: 70px; /* Espaço para a app bar */
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -117,26 +120,34 @@
             margin-right: 10px;
             color: #dc3545;
         }
-        .btn-toggle-filtros {
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="my-4 text-center">Monitoramento de Técnicos em Expediente</h1>
-        <p class="lead text-center">Acompanhe o status dos técnicos e identifique situações de alarme.</p>
-
-        <!-- Botão de Configuração -->
-        <div class="text-center mb-4 d-flex justify-content-center">
-            <a href="https://tecinfo.megalinkpiaui.com.br/admin" class="btn btn-warning me-2">
-                <i class="fas fa-cog"></i> Configuração
-            </a>
-            <button id="btnToggleFiltros" class="btn btn-primary">
-                <i class="fas fa-filter"></i> Mostrar/Ocultar Filtros
+    <!-- App Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Monitoramento de Técnicos</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
             </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="https://tecinfo.megalinkpiaui.com.br/admin" class="btn btn-warning me-2">
+                            <i class="fas fa-cog"></i> Configuração
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button id="btnToggleFiltros" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filtros
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
+    </nav>
 
+    <div class="container">
         <!-- Filtros -->
         <div class="filtro" id="filtroSection">
             <div class="row">
@@ -148,10 +159,10 @@
                     <label for="filtroStatus"><i class="fas fa-info-circle"></i> Status</label>
                     <select id="filtroStatus" class="form-control">
                         <option value="">Todos</option>
-                        <option value="Em Atividade">Em Atividade</option>
-                        <option value="Disponível">Disponível</option>
-                        <option value="Fora Expediente">Fora Expediente</option>
-                        <option value="Ajudante">Ajudante</option>
+                        <option value="Em Atividade">Em Atividade ({{contagem_status.EmAtividade}})</option>
+                        <option value="Disponível">Disponível ({{contagem_status.Disponivel}})</option>
+                        <option value="Fora Expediente">Fora Expediente ({{contagem_status.ForaExpediente}})</option>
+                        <option value="Ajudante">Ajudante ({{contagem_status.Ajudante}})</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -166,8 +177,8 @@
                     <label for="filtroAlarme"><i class="fas fa-bell"></i> Alarme</label>
                     <select id="filtroAlarme" class="form-control">
                         <option value="">Todos</option>
-                        <option value="true">Com Alarme</option>
-                        <option value="false">Sem Alarme</option>
+                        <option value="true">Com Alarme ({{ contagem_alarme.com_alarme }})</option>
+                        <option value="false">Sem Alarme ({{ contagem_alarme.sem_alarme }})</option>
                     </select>
                 </div>
             </div>
@@ -180,76 +191,76 @@
             </div>
         </div>
         
-<!-- Cards dos Técnicos -->
-<div class="row" id="listaTecnicos">
-    {% for tecnico in tecnicos_com_dados %}
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4 tecnico-card" 
-         data-nome="{{ tecnico.tecnico.nome }}" 
-         data-status="{{ tecnico.tecnico.status }}" 
-         data-setor="{{ tecnico.tecnico.setor }}" 
-         data-alarme="{% if tecnico.alarme %}true{% else %}false{% endif %}">
-        <div class="card {% if tecnico.alarme == 'Técnico sem Ordens de Serviço atribuídas' %}border-warning{% elif tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
-            <div class="card-body">
-                <!-- Cabeçalho do Card com Menu de Ações -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title">{{ tecnico.tecnico.nome }}</h5>
-                    <!-- Menu Suspenso de Ações -->
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton-{{ tecnico.tecnico.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v"></i> <!-- Ícone de três pontos -->
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton-{{ tecnico.tecnico.id }}">
-                            <a href="{% url 'detalhes_tecnico' tecnico.tecnico.id %}" class="dropdown-item">
-                                <i class="fas fa-eye"></i> Ver Detalhes
-                            </a>
-                            <a href="{% url 'tecnicos_em_expediente' %}" class="dropdown-item">
-                                <i class="fas fa-chart-line"></i> Ver Métricas
-                            </a>
-                            <a href="https://tecinfo.megalinkpiaui.com.br/admin/tecnicos/tecnico/{{ tecnico.tecnico.id }}/change/" 
-                               class="dropdown-item" 
-                               target="_blank">
-                                <i class="fas fa-cog"></i> Editar
-                            </a>
+        <!-- Cards dos Técnicos -->
+        <div class="row" id="listaTecnicos">
+            {% for tecnico in tecnicos_com_dados %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 tecnico-card" 
+                 data-nome="{{ tecnico.tecnico.nome }}" 
+                 data-status="{{ tecnico.tecnico.status }}" 
+                 data-setor="{{ tecnico.tecnico.setor }}" 
+                 data-alarme="{% if tecnico.alarme %}true{% else %}false{% endif %}">
+                <div class="card {% if tecnico.alarme == 'Técnico sem Ordens de Serviço atribuídas' %}border-warning{% elif tecnico.alarme %}border-danger{% else %}border-success{% endif %}">
+                    <div class="card-body">
+                        <!-- Cabeçalho do Card com Menu de Ações -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title">{{ tecnico.tecnico.nome }}</h5>
+                            <!-- Menu Suspenso de Ações -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton-{{ tecnico.tecnico.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i> <!-- Ícone de três pontos -->
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton-{{ tecnico.tecnico.id }}">
+                                    <a href="{% url 'detalhes_tecnico' tecnico.tecnico.id %}" class="dropdown-item">
+                                        <i class="fas fa-eye"></i> Ver Detalhes
+                                    </a>
+                                    <a href="{% url 'tecnicos_em_expediente' %}" class="dropdown-item">
+                                        <i class="fas fa-chart-line"></i> Ver Métricas
+                                    </a>
+                                    <a href="https://tecinfo.megalinkpiaui.com.br/admin/tecnicos/tecnico/{{ tecnico.tecnico.id }}/change/" 
+                                       class="dropdown-item" 
+                                       target="_blank">
+                                        <i class="fas fa-cog"></i> Editar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informações do Técnico -->
+                        <div class="card-info">
+                            <i class="fas fa-info-circle"></i>
+                            <span><strong>Status:</strong> {{ tecnico.tecnico.status }}</span>
+                        </div>
+                        <div class="card-info">
+                            <i class="fas fa-tasks"></i>
+                            <span><strong>OS Pendentes:</strong> {{ tecnico.qtd_pendente }}</span>
+                        </div>
+                        <div class="card-info">
+                            <i class="fas fa-check-circle"></i>
+                            <span><strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}</span>
+                        </div>
+                        
+                        {% if tecnico.alarme %}
+                        <div class="card-info">
+                            <i class="fas fa-bell"></i>
+                            <span class="text-danger"><strong>Alarme:</strong> {{ tecnico.alarme }}</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Cronômetro -->
+                        <div class="cronometro {% if tecnico.alarme %}alarme{% else %}sem-alarme{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">
+                            00:00:00
+                        </div>
+
+                        <!-- Cidade do Técnico -->
+                        <div class="text-center mt-3">
+                            <strong>{{ tecnico.tecnico.cidade }} </strong> 
+                            <span class="text-muted">({{ tecnico.qtd_ordens_por_cidade }} ordens pendentes)</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Informações do Técnico -->
-                <div class="card-info">
-                    <i class="fas fa-info-circle"></i>
-                    <span><strong>Status:</strong> {{ tecnico.tecnico.status }}</span>
-                </div>
-                <div class="card-info">
-                    <i class="fas fa-tasks"></i>
-                    <span><strong>OS Pendentes:</strong> {{ tecnico.qtd_pendente }}</span>
-                </div>
-                <div class="card-info">
-                    <i class="fas fa-check-circle"></i>
-                    <span><strong>OS Concluídas Hoje:</strong> {{ tecnico.qtd_concluida_hoje }}</span>
-                </div>
-                
-                {% if tecnico.alarme %}
-                <div class="card-info">
-                    <i class="fas fa-bell"></i>
-                    <span class="text-danger"><strong>Alarme:</strong> {{ tecnico.alarme }}</span>
-                </div>
-                {% endif %}
-
-                <!-- Cronômetro -->
-                <div class="cronometro {% if tecnico.alarme %}alarme{% else %}sem-alarme{% endif %}" id="cronometro-{{ tecnico.tecnico.id }}">
-                    00:00:00
-                </div>
-
-                <!-- Cidade do Técnico -->
-                <div class="text-center mt-3">
-                    <strong>{{ tecnico.tecnico.cidade }} </strong> 
-                    <span class="text-muted">({{ tecnico.qtd_ordens_por_cidade }} ordens pendentes)</span>
-                </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
-    {% endfor %}
-</div>
         
         <!-- Bootstrap JS e Dependências -->
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -337,6 +348,11 @@
                         filtroSection.style.display = "none";
                     }
                 });
+                
+                // Atualiza a página a cada 2 minutos (120000 milissegundos)
+                setInterval(function() {
+                    location.reload();
+                }, 120000);
             });
         </script>
     </div>
