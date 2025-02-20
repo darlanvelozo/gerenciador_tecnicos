@@ -184,8 +184,8 @@
                     <th>Tipo</th>
                     <th>Cidade</th>
                     <th>Início Programado</th>
-                    <th>Início Executado</th>
                     <th>Término Programado</th>
+                    <th>Início Executado</th>
                     <th>Término Executado</th>
                     <th>Atraso Execução</th>
                     <th>Atraso Conclusão</th>
@@ -199,7 +199,7 @@
                         {% elif item.os.status == 'Em Andamento' %}status-andamento
                         {% endif %}">
                         <td>{{ item.os.numero_ordem_servico }}</td>
-                        <td>{{ item.os.data_cadastro }}</td>
+                        <td>{{ item.os.data_cadastro|date:"d/m/Y H:i" }}</td>
                         <td>
                             <i class="fas 
                                 {% if item.os.status == 'Concluída' %}fa-check-circle status-icon
@@ -211,10 +211,10 @@
                         <td>{{ item.os.id_cliente_servico }}</td>
                         <td>{{ item.os.tipo_os }}</td>
                         <td>{{ item.os.cidade }}</td>
-                        <td>{{ item.os.data_inicio_programado }}</td>
-                        <td>{{ item.os.data_inicio_executado }}</td>
-                        <td>{{ item.os.data_termino_programado }}</td>
-                        <td>{{ item.os.data_termino_executado }}</td>
+                        <td>{{ item.os.data_inicio_programado|date:"d/m/Y H:i" }}</td>
+                        <td>{{ item.os.data_termino_programado|date:"d/m/Y H:i" }}</td>
+                        <td>{{ item.os.data_inicio_executado|date:"d/m/Y H:i" }}</td>
+                        <td>{{ item.os.data_termino_executado|date:"d/m/Y H:i" }}</td>
                         <td>{{ item.atraso_execucao }}</td>
                         <td>{{ item.atraso_conclusao }}</td>
                     </tr>

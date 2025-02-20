@@ -3,7 +3,8 @@ from django.utils import timezone
 from django.db.models import Avg, Count, F, ExpressionWrapper, fields, Case, When, IntegerField
 from .models import Tecnico, OrdemServico
 from datetime import timedelta
-
+from django.db.models import Q
+from django.utils.timezone import localdate
 def alarme_tecnico(request):
     # Obter a data e hora atuais
     agora = timezone.localtime(timezone.now())
@@ -72,9 +73,13 @@ def alarme_tecnico(request):
                         break
 
         # Nova Situação: Técnico sem Ordens de Serviço atribuídas
-        if not alarme and tecnico.status != "Ajudante" and tecnico.status != "Em Atividade" and qtd_pendente == 0 :
+        if not alarme and tecnico.status != "Ajudante" and tecnico.status != "Em Atividade" and qtd_pendente == 0:
             alarme = "Técnico sem Ordens de Serviço atribuídas"
 
+        # Nova Situação: Ajudante executou Ordem Serviço
+        if not alarme and tecnico.status == "Ajudante" and qtd_concluida_hoje > 0:
+            alarme = "Ajudante executou Ordem de Serviço"
+            
         # Nova lógica para contar ordens de serviço pendentes por cidade
         ordens_por_cidade = OrdemServico.objects.filter(cidade=tecnico.cidade, status="Pendente").count()
         
@@ -134,9 +139,13 @@ def formatar_tempo(duracao):
 
 def detalhes_tecnico(request, tecnico_id):
     tecnico = get_object_or_404(Tecnico, id=tecnico_id)
-    ordens_servico = tecnico.ordens_servico.order_by(  # Incluindo ordens concluídas
-        F('status').asc(),  # Primeiro, ordena pelo status
-        F('data_inicio_programado').desc()  # Depois, pela data de início programado
+    hoje = localdate()  # Obtém a data atual no fuso horário correto
+    ontem = localdate() - timedelta(days=1)
+    # (Q(status="Concluída") & (Q(data_termino_executado__date=hoje) | Q(data_termino_executado__date=ontem)))
+    ordens_servico = tecnico.ordens_servico.filter(
+        Q(status="Em Andamento") | 
+        Q(status="Pendente") | 
+        (Q(status="Concluída") & Q(data_termino_executado__date=hoje))  # Alterado para data_termino_executado
     ).annotate(
         status_order=Case(
             When(status="Em Andamento", then=1),
@@ -145,7 +154,7 @@ def detalhes_tecnico(request, tecnico_id):
             default=4,
             output_field=IntegerField(),
         )
-    ).order_by('status_order', 'data_inicio_programado')
+    ).order_by('status_order', '-data_inicio_programado')
 
     ordens_com_atraso = []
     for os in ordens_servico:
